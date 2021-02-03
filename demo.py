@@ -20,7 +20,8 @@ from tool.darknet2pytorch import Darknet
 import argparse
 
 """hyper parameters"""
-use_cuda = True
+use_cuda = False
+
 
 def detect_cv2(cfgfile, weightfile, imgfile):
     import cv2
@@ -46,12 +47,22 @@ def detect_cv2(cfgfile, weightfile, imgfile):
     sized = cv2.resize(img, (m.width, m.height))
     sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
 
+
     for i in range(2):
         start = time.time()
-        boxes = do_detect(m, sized, 0.4, 0.6, use_cuda)
+        boxes = do_detect(m, sized, 0.25, 0.6, use_cuda)
         finish = time.time()
+
         if i == 1:
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
+            # print("bboxes: ", boxes[0])
+
+            # write predicted bboxes into txt file, one image for one txt file
+            for j in range(len(boxes[0])):
+                with open((imgfile[: -3] + ".txt"), 'a+') as a:
+                    a.write(str(boxes[0][j][5]) + ' ' + str(boxes[0][j][4]) + ' ' \
+                          + str(boxes[0][j][0]) + ' ' + str(boxes[0][j][1]) + ' ' \
+                          + str(boxes[0][j][2]) + ' ' + str(boxes[0][j][3]) + '\n')
 
     plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
 
@@ -142,7 +153,7 @@ def get_args():
                         default='./checkpoints/Yolov4_epoch1.pth',
                         help='path of trained model.', dest='weightfile')
     parser.add_argument('-imgfile', type=str,
-                        default='./data/mscoco2017/train2017/190109_180343_00154162.jpg',
+                        default='./data/dog.jpg',
                         help='path of your image file.', dest='imgfile')
     args = parser.parse_args()
 

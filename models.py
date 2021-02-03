@@ -493,8 +493,7 @@ if __name__ == "__main__":
     from tool.utils import load_class_names, plot_boxes_cv2
     from tool.torch_utils import do_detect
 
-    for i in range(2):  # This 'for' loop is for speed check
-                        # Because the first iteration is usually longer
+    for i in range(2):  # This 'for' loop is for speed check, as the 1st iteration is usually longer
         boxes = do_detect(model, sized, 0.4, 0.6, use_cuda)
 
     if namesfile == None:

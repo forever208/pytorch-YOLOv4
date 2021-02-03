@@ -47,8 +47,6 @@ def bbox_ious(boxes1, boxes2, x1y1x2y2=True):
 
 def get_region_boxes(boxes_and_confs):
 
-    # print('Getting boxes from boxes and confs ...')
-
     boxes_list = []
     confs_list = []
 
@@ -56,10 +54,8 @@ def get_region_boxes(boxes_and_confs):
         boxes_list.append(item[0])
         confs_list.append(item[1])
 
-    # boxes: [batch, num1 + num2 + num3, 1, 4]
-    # confs: [batch, num1 + num2 + num3, num_classes]
-    boxes = torch.cat(boxes_list, dim=1)
-    confs = torch.cat(confs_list, dim=1)
+    boxes = torch.cat(boxes_list, dim=1)    # boxes: (batch, num1+num2+num3, 1, 4)
+    confs = torch.cat(confs_list, dim=1)    # confs: (batch, num1+num2+num3, num_classes)
         
     return [boxes, confs]
 
@@ -70,7 +66,6 @@ def convert2cpu(gpu_matrix):
 
 def convert2cpu_long(gpu_matrix):
     return torch.LongTensor(gpu_matrix.size()).copy_(gpu_matrix)
-
 
 
 def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=1):
@@ -92,7 +87,6 @@ def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=1):
     t1 = time.time()
 
     output = model(img)
-
     t2 = time.time()
 
     print('-----------------------------------')
