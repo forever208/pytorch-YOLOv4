@@ -20,7 +20,7 @@ from tool.darknet2pytorch import Darknet
 import argparse
 
 """use CPU or GPU"""
-use_cuda = True
+use_cuda = False
 
 
 def detect_img_folder(cfgfile, weightfile, imgfolder):
@@ -57,15 +57,25 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
             # print("bboxes: ", boxes[0])
 
-            # write predicted bboxes into txt file, one image for one txt file
+            # write predicted bboxes into txt file, absolute coordinate: "cls, conf, x1, y1, x2, y2"
+            cp_boxes = boxes[0]
+            img = np.copy(img)
+            width = img.shape[1]
+            height = img.shape[0]
+            for i in range(len(cp_boxes)):
+                cp_boxes[i][0] = int(cp_boxes[i][0] * width)
+                cp_boxes[i][1] = int(cp_boxes[i][1] * height)
+                cp_boxes[i][2] = int(cp_boxes[i][2] * width)
+                cp_boxes[i][3] = int(cp_boxes[i][3] * height)
+
             with open((imgfolder + imgfile[: -4] + '.txt'), 'a+') as a:
-                if len(boxes[0]) == 0:
+                if len(cp_boxes) == 0:
                     a.write("0 0 0 0 0 0")
                 else:
-                    for j in range(len(boxes[0])):
-                        a.write(str(boxes[0][j][5]) + ' ' + str(boxes[0][j][4]) + ' ' \
-                              + str(boxes[0][j][0]) + ' ' + str(boxes[0][j][1]) + ' ' \
-                              + str(boxes[0][j][2]) + ' ' + str(boxes[0][j][3]) + '\n')
+                    for j in range(len(cp_boxes)):
+                        a.write(str(cp_boxes[j][5]) + ' ' + str(cp_boxes[j][4]) + ' ' \
+                              + str(cp_boxes[j][0]) + ' ' + str(cp_boxes[j][1]) + ' ' \
+                              + str(cp_boxes[j][2]) + ' ' + str(cp_boxes[j][3]) + '\n')
 
             plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
 
