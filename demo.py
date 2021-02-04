@@ -53,13 +53,13 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
             start = time.time()
             boxes = do_detect(m, sized, 0.25, 0.6, use_cuda)
             finish = time.time()
-            
+
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
             # print("bboxes: ", boxes[0])
 
             # write predicted bboxes into txt file, one image for one txt file
             for j in range(len(boxes[0])):
-                with open((imgfolder + imgfile[: -3] + '.txt'), 'a+') as a:
+                with open((imgfolder + imgfile[: -4] + '.txt'), 'a+') as a:
                     a.write(str(boxes[0][j][5]) + ' ' + str(boxes[0][j][4]) + ' ' \
                           + str(boxes[0][j][0]) + ' ' + str(boxes[0][j][1]) + ' ' \
                           + str(boxes[0][j][2]) + ' ' + str(boxes[0][j][3]) + '\n')
