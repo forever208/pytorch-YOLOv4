@@ -58,11 +58,14 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
             # print("bboxes: ", boxes[0])
 
             # write predicted bboxes into txt file, one image for one txt file
-            for j in range(len(boxes[0])):
-                with open((imgfolder + imgfile[: -4] + '.txt'), 'a+') as a:
-                    a.write(str(boxes[0][j][5]) + ' ' + str(boxes[0][j][4]) + ' ' \
-                          + str(boxes[0][j][0]) + ' ' + str(boxes[0][j][1]) + ' ' \
-                          + str(boxes[0][j][2]) + ' ' + str(boxes[0][j][3]) + '\n')
+            with open((imgfolder + imgfile[: -4] + '.txt'), 'a+') as a:
+                if len(boxes[0]) == 0:
+                    a.write(" ")
+                else:
+                    for j in range(len(boxes[0])):
+                        a.write(str(boxes[0][j][5]) + ' ' + str(boxes[0][j][4]) + ' ' \
+                              + str(boxes[0][j][0]) + ' ' + str(boxes[0][j][1]) + ' ' \
+                              + str(boxes[0][j][2]) + ' ' + str(boxes[0][j][3]) + '\n')
 
             plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
 
