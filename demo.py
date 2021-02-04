@@ -19,11 +19,11 @@ from tool.torch_utils import *
 from tool.darknet2pytorch import Darknet
 import argparse
 
-"""hyper parameters"""
-use_cuda = True
+"""use CPU or GPU"""
+use_cuda = False
 
 
-def detect_cv2(cfgfile, weightfile, imgfile):
+def detect_img_folder(cfgfile, weightfile, imgfolder):
     import cv2
     m = Darknet(cfgfile)
 
@@ -43,28 +43,30 @@ def detect_cv2(cfgfile, weightfile, imgfile):
         namesfile = 'data/x.names'
     class_names = load_class_names(namesfile)
 
-    img = cv2.imread(imgfile)
-    sized = cv2.resize(img, (m.width, m.height))
-    sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
+    img_list = os.listdir(imgfolder)
+    for imgfile in img_list:
+        if imgfile[-3:] == 'jpg' or imgfile[-3:] == 'png':
+            img = cv2.imread(imgfolder + imgfile)
+            sized = cv2.resize(img, (m.width, m.height))
+            sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
 
+            for i in range(2):
+                start = time.time()
+                boxes = do_detect(m, sized, 0.25, 0.6, use_cuda)
+                finish = time.time()
 
-    for i in range(2):
-        start = time.time()
-        boxes = do_detect(m, sized, 0.25, 0.6, use_cuda)
-        finish = time.time()
+                if i == 1:
+                    print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
+                    # print("bboxes: ", boxes[0])
 
-        if i == 1:
-            print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
-            # print("bboxes: ", boxes[0])
+                    # write predicted bboxes into txt file, one image for one txt file
+                    for j in range(len(boxes[0])):
+                        with open((imgfolder + imgfile[: -3] + '.txt'), 'a+') as a:
+                            a.write(str(boxes[0][j][5]) + ' ' + str(boxes[0][j][4]) + ' ' \
+                                  + str(boxes[0][j][0]) + ' ' + str(boxes[0][j][1]) + ' ' \
+                                  + str(boxes[0][j][2]) + ' ' + str(boxes[0][j][3]) + '\n')
 
-            # write predicted bboxes into txt file, one image for one txt file
-            for j in range(len(boxes[0])):
-                with open((imgfile[: -3] + ".txt"), 'a+') as a:
-                    a.write(str(boxes[0][j][5]) + ' ' + str(boxes[0][j][4]) + ' ' \
-                          + str(boxes[0][j][0]) + ' ' + str(boxes[0][j][1]) + ' ' \
-                          + str(boxes[0][j][2]) + ' ' + str(boxes[0][j][3]) + '\n')
-
-    plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
+            plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
 
 
 def detect_cv2_camera(cfgfile, weightfile):
@@ -163,9 +165,9 @@ def get_args():
 if __name__ == '__main__':
     args = get_args()
     if args.imgfile:
-        detect_cv2(args.cfgfile, args.weightfile, args.imgfile)
+        detect_img_folder(args.cfgfile, args.weightfile, args.imgfile)
         # detect_imges(args.cfgfile, args.weightfile)
-        # detect_cv2(args.cfgfile, args.weightfile, args.imgfile)
+        # detect_img_folder(args.cfgfile, args.weightfile, args.imgfile)
         # detect_skimage(args.cfgfile, args.weightfile, args.imgfile)
     else:
         detect_cv2_camera(args.cfgfile, args.weightfile)
