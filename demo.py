@@ -20,7 +20,7 @@ from tool.darknet2pytorch import Darknet
 import argparse
 
 """use CPU or GPU"""
-use_cuda = False
+use_cuda = True
 
 
 def detect_img_folder(cfgfile, weightfile, imgfolder):
