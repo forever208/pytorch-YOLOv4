@@ -60,7 +60,7 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
             # write predicted bboxes into txt file, one image for one txt file
             with open((imgfolder + imgfile[: -4] + '.txt'), 'a+') as a:
                 if len(boxes[0]) == 0:
-                    a.write(" ")
+                    a.write("0 0 0 0 0 0")
                 else:
                     for j in range(len(boxes[0])):
                         a.write(str(boxes[0][j][5]) + ' ' + str(boxes[0][j][4]) + ' ' \
