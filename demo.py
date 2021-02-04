@@ -20,7 +20,7 @@ from tool.darknet2pytorch import Darknet
 import argparse
 
 """hyper parameters"""
-use_cuda = False
+use_cuda = True
 
 
 def detect_cv2(cfgfile, weightfile, imgfile):
