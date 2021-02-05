@@ -2,12 +2,10 @@
 A script to evaluate the model's performance using pre-trained weights using COCO API.
 
 Example usage:
-python evaluate_on_coco.py -dir D:\cocoDataset\val2017\val2017
--gta D:\cocoDataset\annotations_trainval2017\annotations\instances_val2017.json
--c cfg/yolov4-smaller-input.cfg -g 0
+python evaluate_on_coco.py -dir ./val2017 -gta ./annotations/instances_val2017.json -c cfg/yolov4.cfg -g 0
 
-Explanation: set where your images can be found using -dir, then use -gta to point to the ground truth annotations file
-and finally -c to point to the config file you want to use to load the network using.
+Explanation: -dir your images folder, -gta ground truth annotations file path, -c config file path, -g 0 means use GPU
+and finally -c to point to the config file,
 """
 
 import argparse
