@@ -57,25 +57,28 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
             # print("bboxes: ", boxes[0])
 
-            # write predicted bboxes into txt file, absolute coordinate: "cls, conf, x1, y1, x2, y2"
-            cp_boxes = boxes[0]
+            """write predicted bboxes into txt file with absolute coordinate form: [cls, conf, x, y, w, h]"""
+            cp_boxes = np.copy(boxes[0])    # [[x1, y1, x2, y2, conf, cls], [], ...]
             img = np.copy(img)
             width = img.shape[1]
             height = img.shape[0]
+
+            # normalised [x1, y1, x2, y2] --> original [x, y, w, h]
             for i in range(len(cp_boxes)):
-                cp_boxes[i][0] = int(cp_boxes[i][0] * width)
-                cp_boxes[i][1] = int(cp_boxes[i][1] * height)
-                cp_boxes[i][2] = int(cp_boxes[i][2] * width)
-                cp_boxes[i][3] = int(cp_boxes[i][3] * height)
+                cp_boxes[i][0] = (boxes[0][i][0]+boxes[0][i][2])/2 * width
+                cp_boxes[i][1] = (boxes[0][i][1]+boxes[0][i][3])/2 * height
+                cp_boxes[i][2] = (boxes[0][i][2]-boxes[0][i][0]) * width
+                cp_boxes[i][3] = (boxes[0][i][3]-boxes[0][i][1]) * height
+            print("【】", cp_boxes)
 
             with open((imgfolder + imgfile[: -4] + '.txt'), 'a+') as a:
                 if len(cp_boxes) == 0:
                     a.write("0 0 0 0 0 0")
                 else:
                     for j in range(len(cp_boxes)):
-                        a.write(str(cp_boxes[j][5]) + ' ' + str(cp_boxes[j][4]) + ' ' \
-                              + str(cp_boxes[j][0]) + ' ' + str(cp_boxes[j][1]) + ' ' \
-                              + str(cp_boxes[j][2]) + ' ' + str(cp_boxes[j][3]) + '\n')
+                        a.write(str(int(cp_boxes[j][5])) + ' ' + str(cp_boxes[j][4]) + ' ' \
+                              + str(int(cp_boxes[j][0])) + ' ' + str(int(cp_boxes[j][1])) + ' ' \
+                              + str(int(cp_boxes[j][2])) + ' ' + str(int(cp_boxes[j][3])) + '\n')
 
             plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
 
