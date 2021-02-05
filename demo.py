@@ -51,7 +51,7 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
             sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
 
             start = time.time()
-            boxes = do_detect(m, sized, 0.001, 0.6, use_cuda)
+            boxes = do_detect(m, sized, 0.0, 0.4, use_cuda)
             finish = time.time()
 
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
