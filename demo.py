@@ -76,8 +76,8 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
                 else:
                     for j in range(len(cp_boxes)):
                         a.write(str(int(cp_boxes[j][5])) + ' ' + str(cp_boxes[j][4]) + ' ' \
-                              + str(int(cp_boxes[j][0])) + ' ' + str(int(cp_boxes[j][1])) + ' ' \
-                              + str(int(cp_boxes[j][2])) + ' ' + str(int(cp_boxes[j][3])) + '\n')
+                              + str(float(cp_boxes[j][0])) + ' ' + str(float(cp_boxes[j][1])) + ' ' \
+                              + str(float(cp_boxes[j][2])) + ' ' + str(float(cp_boxes[j][3])) + '\n')
 
             plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
 
