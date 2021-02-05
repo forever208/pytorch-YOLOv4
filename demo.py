@@ -18,6 +18,7 @@ from tool.utils import *
 from tool.torch_utils import *
 from tool.darknet2pytorch import Darknet
 import argparse
+import copy
 
 """use CPU or GPU"""
 use_cuda = True
@@ -26,7 +27,6 @@ use_cuda = True
 def detect_img_folder(cfgfile, weightfile, imgfolder):
     import cv2
     m = Darknet(cfgfile)
-
     m.print_network()
     m.load_weights(weightfile)
     print('Loading weights from %s... Done!' % (weightfile))
@@ -58,7 +58,7 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
             # print("bboxes: ", boxes[0])
 
             """write predicted bboxes into txt file with absolute coordinate form: [cls, conf, x, y, w, h]"""
-            cp_boxes = np.copy(boxes[0])    # [[x1, y1, x2, y2, conf, cls], [], ...]
+            cp_boxes = copy.deepcopy(boxes[0])    # [[x1, y1, x2, y2, conf, cls], [], ...]
             img = np.copy(img)
             width = img.shape[1]
             height = img.shape[0]
@@ -69,15 +69,16 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
                 cp_boxes[i][1] = (boxes[0][i][1]+boxes[0][i][3])/2 * height
                 cp_boxes[i][2] = (boxes[0][i][2]-boxes[0][i][0]) * width
                 cp_boxes[i][3] = (boxes[0][i][3]-boxes[0][i][1]) * height
+            print('【cp_boxes】', cp_boxes)
 
             with open((imgfolder + imgfile[: -4] + '.txt'), 'a+') as a:
                 if len(cp_boxes) == 0:
                     a.write("0 0 0 0 0 0")
                 else:
                     for j in range(len(cp_boxes)):
-                        a.write(str(int(cp_boxes[j][5])) + ' ' + str(cp_boxes[j][4]) + ' ' \
-                              + str(float(cp_boxes[j][0])) + ' ' + str(float(cp_boxes[j][1])) + ' ' \
-                              + str(float(cp_boxes[j][2])) + ' ' + str(float(cp_boxes[j][3])) + '\n')
+                        a.write(str(cp_boxes[j][5]) + ' ' + str(cp_boxes[j][4]) + ' ' \
+                              + str(cp_boxes[j][0]) + ' ' + str(cp_boxes[j][1]) + ' ' \
+                              + str(cp_boxes[j][2]) + ' ' + str(cp_boxes[j][3]) + '\n')
 
             plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
 
@@ -85,7 +86,6 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
 def detect_cv2_camera(cfgfile, weightfile):
     import cv2
     m = Darknet(cfgfile)
-
     m.print_network()
     m.load_weights(weightfile)
     print('Loading weights from %s... Done!' % (weightfile))
@@ -130,7 +130,6 @@ def detect_skimage(cfgfile, weightfile, imgfile):
     from skimage import io
     from skimage.transform import resize
     m = Darknet(cfgfile)
-
     m.print_network()
     m.load_weights(weightfile)
     print('Loading weights from %s... Done!' % (weightfile))

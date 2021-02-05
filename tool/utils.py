@@ -207,29 +207,37 @@ def post_processing(img, conf_thresh, nms_thresh, output):
         l_max_id = max_id[i, argwhere]    # (x,)
 
         bboxes = []
+        """do nms for each class"""
+        for j in range(num_classes):
+            # select bboxes belong to the same class
+            cls_argwhere = l_max_id == j
+            ll_box_array = l_box_array[cls_argwhere, :]
+            ll_max_conf = l_max_conf[cls_argwhere]
+            ll_max_id = l_max_id[cls_argwhere]
+
+            keep = nms_cpu(ll_box_array, ll_max_conf, nms_thresh)
+            if (keep.size > 0):
+                ll_box_array = ll_box_array[keep, :]
+                ll_max_conf = ll_max_conf[keep]
+                ll_max_id = ll_max_id[keep]
+
+                for k in range(ll_box_array.shape[0]):
+                    bboxes.append([ll_box_array[k, 0], ll_box_array[k, 1], ll_box_array[k, 2], ll_box_array[k, 3], ll_max_conf[k], ll_max_id[k]])
+
         """change nms for each class to nms for all objects in an image"""
-        # for j in range(num_classes):    # nms for each class
+        # ll_box_array = l_box_array
+        # ll_max_conf = l_max_conf
+        # ll_max_id = l_max_id
         #
-        #     # select bboxes belong to the same class
-        #     cls_argwhere = l_max_id == j
-        #     ll_box_array = l_box_array[cls_argwhere, :]
-        #     ll_max_conf = l_max_conf[cls_argwhere]
-        #     ll_max_id = l_max_id[cls_argwhere]
+        # keep = nms_cpu(ll_box_array, ll_max_conf, nms_thresh)
+        # if (keep.size > 0):
+        #     ll_box_array = ll_box_array[keep, :]
+        #     ll_max_conf = ll_max_conf[keep]
+        #     ll_max_id = ll_max_id[keep]
+        #
+        #     for k in range(ll_box_array.shape[0]):
+        #         bboxes.append([ll_box_array[k, 0], ll_box_array[k, 1], ll_box_array[k, 2], ll_box_array[k, 3], ll_max_conf[k], ll_max_id[k]])
 
-        ll_box_array = l_box_array
-        ll_max_conf = l_max_conf
-        ll_max_id = l_max_id
-
-        keep = nms_cpu(ll_box_array, ll_max_conf, nms_thresh)
-
-        if (keep.size > 0):
-            ll_box_array = ll_box_array[keep, :]
-            ll_max_conf = ll_max_conf[keep]
-            ll_max_id = ll_max_id[keep]
-
-            for k in range(ll_box_array.shape[0]):
-                bboxes.append([ll_box_array[k, 0], ll_box_array[k, 1], ll_box_array[k, 2], ll_box_array[k, 3], ll_max_conf[k], ll_max_id[k]])
-        
         bboxes_batch.append(bboxes)
 
     t3 = time.time()
