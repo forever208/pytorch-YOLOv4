@@ -51,7 +51,7 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
             sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
 
             start = time.time()
-            boxes = do_detect(m, sized, 0.25, 0.6, use_cuda)
+            boxes = do_detect(m, sized, 0.001, 0.6, use_cuda)
             finish = time.time()
 
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
@@ -161,14 +161,21 @@ def detect_skimage(cfgfile, weightfile, imgfile):
 
 def get_args():
     parser = argparse.ArgumentParser('Test your image or video by trained model.')
-    parser.add_argument('-cfgfile', type=str, default='./cfg/yolov4.cfg',
-                        help='path of cfg file', dest='cfgfile')
-    parser.add_argument('-weightfile', type=str,
-                        default='./checkpoints/Yolov4_epoch1.pth',
-                        help='path of trained model.', dest='weightfile')
-    parser.add_argument('-imgfile', type=str,
-                        default='./data/dog.jpg',
-                        help='path of your image file.', dest='imgfile')
+    parser.add_argument('-cfgfile',
+                        type=str,
+                        default='./cfg/yolov4.cfg',
+                        help='path of cfg file',
+                        dest='cfgfile')
+    parser.add_argument('-weightfile',
+                        type=str,
+                        default='yolov4.weights',
+                        help='path of trained model.',
+                        dest='weightfile')
+    parser.add_argument('-imgfolder',
+                        type=str,
+                        default='./data/',
+                        help='path of your image file.',
+                        dest='imgfolder')
     args = parser.parse_args()
 
     return args
@@ -177,7 +184,7 @@ def get_args():
 if __name__ == '__main__':
     args = get_args()
     if args.imgfile:
-        detect_img_folder(args.cfgfile, args.weightfile, args.imgfile)
+        detect_img_folder(args.cfgfile, args.weightfile, args.imgfolder)
         # detect_imges(args.cfgfile, args.weightfile)
         # detect_img_folder(args.cfgfile, args.weightfile, args.imgfile)
         # detect_skimage(args.cfgfile, args.weightfile, args.imgfile)
