@@ -1,8 +1,10 @@
 """
 A script to evaluate the model's performance using pre-trained weights using COCO API.
 
-Example usage: python evaluate_on_coco.py -dir D:\cocoDataset\val2017\val2017 -gta D:\cocoDataset\annotatio
-ns_trainval2017\annotations\instances_val2017.json -c cfg/yolov4-smaller-input.cfg -g 0
+Example usage:
+python evaluate_on_coco.py -dir D:\cocoDataset\val2017\val2017
+-gta D:\cocoDataset\annotations_trainval2017\annotations\instances_val2017.json
+-c cfg/yolov4-smaller-input.cfg -g 0
 
 Explanation: set where your images can be found using -dir, then use -gta to point to the ground truth annotations file
 and finally -c to point to the config file you want to use to load the network using.
@@ -173,7 +175,8 @@ def test(model, annotations, cfg):
 
     # do one forward pass first to circumvent cold start
     throwaway_image = Image.open('data/dog.jpg').convert('RGB').resize((model.width, model.height))
-    do_detect(model, throwaway_image, 0.5, 80, 0.4, use_cuda)
+    throwaway_image = np.array(throwaway_image)
+    do_detect(model, throwaway_image, 0.5, 0.6, use_cuda)
     boxes_json = []
 
     for i, image_annotation in enumerate(images):
@@ -186,12 +189,14 @@ def test(model, annotations, cfg):
         # open and resize each image first
         img = Image.open(os.path.join(cfg.dataset_dir, image_file_name)).convert('RGB')
         sized = img.resize((model.width, model.height))
+        sized = np.array(sized)
 
         if use_cuda:
             model.cuda()
 
         start = time.time()
-        boxes = do_detect(model, sized, 0.0, 80, 0.4, use_cuda)
+        pred_boxes = do_detect(model, sized, 0.0, 0.6, use_cuda)
+        boxes = pred_boxes[0]
         finish = time.time()
         if type(boxes) == list:
             for box in boxes:
@@ -244,9 +249,9 @@ def get_args(**kwargs):
                         help='dataset dir', dest='dataset_dir')
     parser.add_argument('-gta', '--ground_truth_annotations', type=str, default='instances_val2017.json',
                         help='ground truth annotations file', dest='gt_annotations_path')
-    parser.add_argument('-w', '--weights_file', type=str, default='weights/yolov4.weights',
+    parser.add_argument('-w', '--weights_file', type=str, default='yolov4.weights',
                         help='weights file to load', dest='weights_file')
-    parser.add_argument('-c', '--model_config', type=str, default='cfg/yolov4.cfg',
+    parser.add_argument('-c', '--model_config', type=str, default='./cfg/yolov4.cfg',
                         help='model config file to load', dest='model_config')
     args = vars(parser.parse_args())
 
@@ -316,6 +321,5 @@ if __name__ == "__main__":
         except:
             print("annotations file not a json")
             exit()
-    test(model=model,
-         annotations=annotations,
-         cfg=cfg)
+
+    test(model=model, annotations=annotations, cfg=cfg)
