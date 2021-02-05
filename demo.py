@@ -20,7 +20,7 @@ from tool.darknet2pytorch import Darknet
 import argparse
 
 """use CPU or GPU"""
-use_cuda = False
+use_cuda = True
 
 
 def detect_img_folder(cfgfile, weightfile, imgfolder):
@@ -69,7 +69,6 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
                 cp_boxes[i][1] = (boxes[0][i][1]+boxes[0][i][3])/2 * height
                 cp_boxes[i][2] = (boxes[0][i][2]-boxes[0][i][0]) * width
                 cp_boxes[i][3] = (boxes[0][i][3]-boxes[0][i][1]) * height
-            print("【】", cp_boxes)
 
             with open((imgfolder + imgfile[: -4] + '.txt'), 'a+') as a:
                 if len(cp_boxes) == 0:
