@@ -183,7 +183,7 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    if args.folder:
+    if args.imgfolder:
         detect_img_folder(args.cfgfile, args.weightfile, args.imgfolder)
         # detect_imges(args.cfgfile, args.weightfile)
         # detect_img_folder(args.cfgfile, args.weightfile, args.imgfile)
