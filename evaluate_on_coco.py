@@ -1,7 +1,9 @@
 """
 A script to evaluate the model's performance using pre-trained weights using COCO API.
+
 Example usage: python evaluate_on_coco.py -dir D:\cocoDataset\val2017\val2017 -gta D:\cocoDataset\annotatio
 ns_trainval2017\annotations\instances_val2017.json -c cfg/yolov4-smaller-input.cfg -g 0
+
 Explanation: set where your images can be found using -dir, then use -gta to point to the ground truth annotations file
 and finally -c to point to the config file you want to use to load the network using.
 """
@@ -50,6 +52,7 @@ def get_class_name(cat):
         cat = cat - 11
     return class_names[cat]
 
+
 def convert_cat_id_and_reorientate_bbox(single_annotation):
     cat = single_annotation['category_id']
     bbox = single_annotation['bbox']
@@ -78,7 +81,6 @@ def convert_cat_id_and_reorientate_bbox(single_annotation):
     return single_annotation
 
 
-
 def myconverter(obj):
     if isinstance(obj, np.integer):
         return int(obj)
@@ -91,13 +93,16 @@ def myconverter(obj):
     else:
         return obj
 
+
 def evaluate_on_coco(cfg, resFile):
-    annType = "bbox"  # specify type here
+    annType = "bbox"    # specify type here
+
     with open(resFile, 'r') as f:
         unsorted_annotations = json.load(f)
     sorted_annotations = list(sorted(unsorted_annotations, key=lambda single_annotation: single_annotation["image_id"]))
     sorted_annotations = list(map(convert_cat_id_and_reorientate_bbox, sorted_annotations))
     reshaped_annotations = defaultdict(list)
+
     for annotation in sorted_annotations:
         reshaped_annotations[annotation['image_id']].append(annotation)
 
@@ -117,12 +122,8 @@ def evaluate_on_coco(cfg, resFile):
 
     for i, image_id in enumerate(reshaped_annotations):
         image_annotations = reshaped_annotations[image_id]
-        gt_annotation_image_raw = list(filter(
-            lambda image_json: image_json['id'] == image_id, gt_annotation_raw_images
-        ))
-        gt_annotation_labels_raw = list(filter(
-            lambda label_json: label_json['image_id'] == image_id, gt_annotation_raw_labels
-        ))
+        gt_annotation_image_raw = list(filter(lambda image_json: image_json['id'] == image_id, gt_annotation_raw_images))
+        gt_annotation_labels_raw = list(filter(lambda label_json: label_json['image_id'] == image_id, gt_annotation_raw_labels))
         if len(gt_annotation_image_raw) == 1:
             image_path = os.path.join(cfg.dataset_dir, gt_annotation_image_raw[0]["file_name"])
             actual_image = Image.open(image_path).convert('RGB')
@@ -317,4 +318,4 @@ if __name__ == "__main__":
             exit()
     test(model=model,
          annotations=annotations,
-         cfg=cfg, )
+         cfg=cfg)
