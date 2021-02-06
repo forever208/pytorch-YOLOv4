@@ -209,7 +209,7 @@ def post_processing(img, conf_thresh, nms_thresh, output, special_nms=False):
 
         """do nms for each class"""
         if special_nms == False:
-            print("【【normal nms】】")
+            print("【normal nms】")
             for j in range(num_classes):
                 # select bboxes belong to the same class
                 cls_argwhere = l_max_id == j
@@ -231,7 +231,7 @@ def post_processing(img, conf_thresh, nms_thresh, output, special_nms=False):
 
         """do nms for all objects in an image"""
         if special_nms == True:
-            print("【【special nms】】")
+            print("【special nms】")
             ll_box_array = l_box_array
             ll_max_conf = l_max_conf
             ll_max_id = l_max_id
