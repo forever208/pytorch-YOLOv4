@@ -67,7 +67,6 @@ def detect_img_folder(cfgfile, weightfile, imgfolder, specialnms, gpu):
                 cp_boxes[i][1] = (boxes[0][i][1]+boxes[0][i][3])/2 * height
                 cp_boxes[i][2] = (boxes[0][i][2]-boxes[0][i][0]) * width
                 cp_boxes[i][3] = (boxes[0][i][3]-boxes[0][i][1]) * height
-            print('【pred boxes】', cp_boxes)
 
             with open((imgfolder + imgfile[: -4] + '.txt'), 'a+') as a:
                 if len(cp_boxes) == 0:
