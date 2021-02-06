@@ -49,7 +49,7 @@ def detect_img_folder(cfgfile, weightfile, imgfolder, specialnms, gpu):
             sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
 
             start = time.time()
-            boxes = do_detect(m, sized, 0.1, 0.6, use_cuda, specialnms)
+            boxes = do_detect(m, sized, 0.2, 0.45, use_cuda, specialnms)
             finish = time.time()
 
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
