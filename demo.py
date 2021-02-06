@@ -38,7 +38,7 @@ def detect_img_folder(cfgfile, weightfile, imgfolder, specialnms, gpu):
     elif num_classes == 80:
         namesfile = 'data/coco.names'
     else:
-        namesfile = 'data/x.names'
+        namesfile = 'data/obj.names'
     class_names = load_class_names(namesfile)
 
     img_list = os.listdir(imgfolder)
