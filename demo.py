@@ -20,17 +20,15 @@ from tool.darknet2pytorch import Darknet
 import argparse
 import copy
 
-"""use CPU or GPU"""
-use_cuda = True
 
-
-def detect_img_folder(cfgfile, weightfile, imgfolder):
+def detect_img_folder(cfgfile, weightfile, imgfolder, specialnms, gpu):
     import cv2
     m = Darknet(cfgfile)
     m.print_network()
     m.load_weights(weightfile)
     print('Loading weights from %s... Done!' % (weightfile))
 
+    use_cuda = gpu
     if use_cuda:
         m.cuda()
 
@@ -51,7 +49,7 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
             sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
 
             start = time.time()
-            boxes = do_detect(m, sized, 0.005, 0.45, use_cuda)
+            boxes = do_detect(m, sized, 0.005, 0.45, use_cuda, specialnms)
             finish = time.time()
 
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
@@ -83,13 +81,14 @@ def detect_img_folder(cfgfile, weightfile, imgfolder):
             plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
 
 
-def detect_cv2_camera(cfgfile, weightfile):
+def detect_cv2_camera(cfgfile, weightfile, gpu):
     import cv2
     m = Darknet(cfgfile)
     m.print_network()
     m.load_weights(weightfile)
     print('Loading weights from %s... Done!' % (weightfile))
 
+    use_cuda = gpu
     if use_cuda:
         m.cuda()
 
@@ -126,7 +125,7 @@ def detect_cv2_camera(cfgfile, weightfile):
     cap.release()
 
 
-def detect_skimage(cfgfile, weightfile, imgfile):
+def detect_skimage(cfgfile, weightfile, imgfile, gpu):
     from skimage import io
     from skimage.transform import resize
     m = Darknet(cfgfile)
@@ -134,6 +133,7 @@ def detect_skimage(cfgfile, weightfile, imgfile):
     m.load_weights(weightfile)
     print('Loading weights from %s... Done!' % (weightfile))
 
+    use_cuda = gpu
     if use_cuda:
         m.cuda()
 
@@ -176,6 +176,16 @@ def get_args():
                         default='./data/',
                         help='path of your image file.',
                         dest='imgfolder')
+    parser.add_argument('-specialnms',
+                        type=bool,
+                        default=False,
+                        help='using special NMS or not.',
+                        dest='specialnms')
+    parser.add_argument('-gpu',
+                        type=bool,
+                        default=False,
+                        help='using gpu or not.',
+                        dest='gpu')
     args = parser.parse_args()
 
     return args
@@ -184,9 +194,9 @@ def get_args():
 if __name__ == '__main__':
     args = get_args()
     if args.imgfolder:
-        detect_img_folder(args.cfgfile, args.weightfile, args.imgfolder)
+        detect_img_folder(args.cfgfile, args.weightfile, args.imgfolder, args.specialnms, args.gpu)
         # detect_imges(args.cfgfile, args.weightfile)
         # detect_img_folder(args.cfgfile, args.weightfile, args.imgfile)
         # detect_skimage(args.cfgfile, args.weightfile, args.imgfile)
     else:
-        detect_cv2_camera(args.cfgfile, args.weightfile)
+        detect_cv2_camera(args.cfgfile, args.weightfile, args.gpu)

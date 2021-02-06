@@ -74,7 +74,7 @@ def nms_cpu(boxes, confs, nms_thresh=0.45, min_mode=False):
     y2 = boxes[:, 3]
 
     areas = (x2 - x1) * (y2 - y1)
-    order = confs.argsort()[::-1]    # return the sorting index of confs list
+    order = confs.argsort()[::-1]  # return the sorting index of confs list
 
     keep = []
     while order.size > 0:
@@ -99,9 +99,8 @@ def nms_cpu(boxes, confs, nms_thresh=0.45, min_mode=False):
 
         inds = np.where(over <= nms_thresh)[0]
         order = order[inds + 1]
-    
-    return np.array(keep)
 
+    return np.array(keep)
 
 
 def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
@@ -171,7 +170,7 @@ def load_class_names(namesfile):
 
 
 """input the 3 scale predicted bboxes, execute conf filtering and NMS"""
-def post_processing(img, conf_thresh, nms_thresh, output):
+def post_processing(img, conf_thresh, nms_thresh, output, special_nms=False):
     """
     Args:
         img:
@@ -181,39 +180,61 @@ def post_processing(img, conf_thresh, nms_thresh, output):
     Returns:
     """
 
-    box_array = output[0]    # (batch, 10647, 1, 4)
-    confs = output[1]    # (batch, 10647, 80), where 10647=3*(13*13+26*26+52*52)
+    box_array = output[0]  # (batch, 10647, 1, 4)
+    confs = output[1]  # (batch, 10647, 80), where 10647=3*(13*13+26*26+52*52)
 
     t1 = time.time()
 
     if type(box_array).__name__ != 'ndarray':
-        box_array = box_array.cpu().detach().numpy()    # CUDA tensor --> CPU tensor --> detach from graph --> numpy
+        box_array = box_array.cpu().detach().numpy()  # CUDA tensor --> CPU tensor --> detach from graph --> numpy
         confs = confs.cpu().detach().numpy()
 
-    num_classes = confs.shape[2]    # 80
-    box_array = box_array[:, :, 0]    # (batch, 10647, 4)
-    max_conf = np.max(confs, axis=2)    # (batch, 10647, num_classes) --> (batch, 10647) max conf value
-    max_id = np.argmax(confs, axis=2)    # (batch, 10647, num_classes) --> (batch, 10647) max index (cls labels)
+    num_classes = confs.shape[2]  # 80
+    box_array = box_array[:, :, 0]  # (batch, 10647, 4)
+    max_conf = np.max(confs, axis=2)  # (batch, 10647, num_classes) --> (batch, 10647) max conf value
+    max_id = np.argmax(confs, axis=2)  # (batch, 10647, num_classes) --> (batch, 10647) max index (cls labels)
 
     t2 = time.time()
 
     bboxes_batch = []
-    for i in range(box_array.shape[0]):    # for each image
+    for i in range(box_array.shape[0]):  # for each image
 
         # filter out small conf bboxes (10647 bboxes --> x bboxes)
-        argwhere = max_conf[i] > conf_thresh    # (10647, ) False/True
-        l_box_array = box_array[i, argwhere, :]    # (x, 4)
-        l_max_conf = max_conf[i, argwhere]    # (x,)
-        l_max_id = max_id[i, argwhere]    # (x,)
+        argwhere = max_conf[i] > conf_thresh  # (10647, ) False/True
+        l_box_array = box_array[i, argwhere, :]  # (x, 4)
+        l_max_conf = max_conf[i, argwhere]  # (x,)
+        l_max_id = max_id[i, argwhere]  # (x,)
 
         bboxes = []
+
         """do nms for each class"""
-        for j in range(num_classes):
-            # select bboxes belong to the same class
-            cls_argwhere = l_max_id == j
-            ll_box_array = l_box_array[cls_argwhere, :]
-            ll_max_conf = l_max_conf[cls_argwhere]
-            ll_max_id = l_max_id[cls_argwhere]
+        if special_nms == False:
+            print("【【normal nms】】")
+            for j in range(num_classes):
+                # select bboxes belong to the same class
+                cls_argwhere = l_max_id == j
+                ll_box_array = l_box_array[cls_argwhere, :]
+                ll_max_conf = l_max_conf[cls_argwhere]
+                ll_max_id = l_max_id[cls_argwhere]
+
+                keep = nms_cpu(ll_box_array, ll_max_conf, nms_thresh)
+                if (keep.size > 0):
+                    ll_box_array = ll_box_array[keep, :]
+                    ll_max_conf = ll_max_conf[keep]
+                    ll_max_id = ll_max_id[keep]
+
+                    for k in range(ll_box_array.shape[0]):
+                        bboxes.append(
+                            [ll_box_array[k, 0], ll_box_array[k, 1], ll_box_array[k, 2], ll_box_array[k, 3],
+                             ll_max_conf[k],
+                             ll_max_id[k]])
+
+        """do nms for all objects in an image"""
+        if special_nms == True:
+            print("【【special nms】】")
+            ll_box_array = l_box_array
+            ll_max_conf = l_max_conf
+            ll_max_id = l_max_id
 
             keep = nms_cpu(ll_box_array, ll_max_conf, nms_thresh)
             if (keep.size > 0):
@@ -222,21 +243,9 @@ def post_processing(img, conf_thresh, nms_thresh, output):
                 ll_max_id = ll_max_id[keep]
 
                 for k in range(ll_box_array.shape[0]):
-                    bboxes.append([ll_box_array[k, 0], ll_box_array[k, 1], ll_box_array[k, 2], ll_box_array[k, 3], ll_max_conf[k], ll_max_id[k]])
-
-        """do nms for all objects in an image"""
-        # ll_box_array = l_box_array
-        # ll_max_conf = l_max_conf
-        # ll_max_id = l_max_id
-        #
-        # keep = nms_cpu(ll_box_array, ll_max_conf, nms_thresh)
-        # if (keep.size > 0):
-        #     ll_box_array = ll_box_array[keep, :]
-        #     ll_max_conf = ll_max_conf[keep]
-        #     ll_max_id = ll_max_id[keep]
-        #
-        #     for k in range(ll_box_array.shape[0]):
-        #         bboxes.append([ll_box_array[k, 0], ll_box_array[k, 1], ll_box_array[k, 2], ll_box_array[k, 3], ll_max_conf[k], ll_max_id[k]])
+                    bboxes.append(
+                        [ll_box_array[k, 0], ll_box_array[k, 1], ll_box_array[k, 2], ll_box_array[k, 3], ll_max_conf[k],
+                         ll_max_id[k]])
 
         bboxes_batch.append(bboxes)
 
@@ -248,4 +257,4 @@ def post_processing(img, conf_thresh, nms_thresh, output):
     print('Post processing total : %f' % (t3 - t1))
     print('-----------------------------------')
 
-    return bboxes_batch    # [x1, y1, x2, y2, conf, cls_id]
+    return bboxes_batch  # [x1, y1, x2, y2, conf, cls_id]
